@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MS SQL Server Alerting & Monitoring Infographic</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+      }
+      .chart-container {
+        position: relative;
+        width: 100%;
+        max-width: 400px;
+        margin-left: auto;
+        margin-right: auto;
+        height: 320px;
+        max-height: 350px;
+      }
+      .flowchart-step {
+        border-left-width: 2px;
+        padding-left: 1.5rem;
+        position: relative;
+      }
+      .flowchart-step::before {
+        content: "";
+        position: absolute;
+        left: -0.5rem;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 1rem;
+        height: 1rem;
+        border-radius: 9999px;
+        background-color: white;
+        border-width: 2px;
+        border-style: solid;
+        border-color: currentColor;
+      }
+      .flowchart-connector {
+        height: 100%;
+        width: 2px;
+        left: -1px;
+        top: 50%;
+        position: absolute;
+      }
+      .nav-link.active {
+        border-bottom-width: 2px;
+      }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+  <header class="bg-white/80 backdrop-blur-lg sticky top-0 z-50 shadow-sm">
+    <nav class="container mx-auto px-4">
+      <div class="flex items-center justify-between h-16">
+        <h1 class="text-xl font-bold text-[#005F73]">SQL Alerting Dashboard</h1>
+        <div class="hidden md:flex items-center space-x-8">
+          <a
+            href="#overview"
+            class="nav-link text-slate-600 hover:text-[#005F73] border-b-2 border-transparent hover:border-[#005F73] transition-colors duration-300"
+            >Overview</a
+          >
+          <a
+            href="#comparison"
+            class="nav-link text-slate-600 hover:text-[#005F73] border-b-2 border-transparent hover:border-[#005F73] transition-colors duration-300"
+            >System Comparison</a
+          >
+          <a
+            href="#lifecycle"
+            class="nav-link text-slate-600 hover:text-[#005F73] border-b-2 border-transparent hover:border-[#005F73] transition-colors duration-300"
+            >Alert Lifecycle</a
+          >
+          <a
+            href="#directory"
+            class="nav-link text-slate-600 hover:text-[#005F73] border-b-2 border-transparent hover:border-[#005F73] transition-colors duration-300"
+            >Alert Directory</a
+          >
+        </div>
+        <div class="md:hidden">
+          <select
+            id="mobile-nav"
+            class="bg-white border border-slate-300 rounded-md p-2 text-slate-600"
+          >
+            <option value="#overview">Overview</option>
+            <option value="#comparison">Comparison</option>
+            <option value="#lifecycle">Lifecycle</option>
+            <option value="#directory">Directory</option>
+          </select>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main class="container mx-auto p-4 md:p-8">
+    <section id="overview" class="mb-16 scroll-mt-24">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl md:text-4xl font-bold text-[#005F73]">
+          Monitoring System Overview
+        </h2>
+        <p class="mt-2 text-lg text-slate-600">
+          A high-level look at our dual-system monitoring strategy.
+        </p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+        <div class="bg-white p-6 rounded-lg shadow-md">
+          <h3 class="text-5xl font-bold text-[#EE9B00]">3</h3>
+          <p class="mt-2 text-slate-600 font-semibold">Monitoring Tools</p>
+          <p class="text-sm text-slate-500">
+            MNA, Redgate, and SQL native monitoring provide comprehensive
+            coverage.
+          </p>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow-md">
+          <h3 class="text-5xl font-bold text-[#0A9396]">2</h3>
+          <p class="mt-2 text-slate-600 font-semibold">Primary Alerting Systems</p>
+          <p class="text-sm text-slate-500">
+            MNA for foundational alerts, Redgate for performance.
+          </p>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow-md">
+          <h3 class="text-5xl font-bold text-[#94D2BD]">3+</h3>
+          <p class="mt-2 text-slate-600 font-semibold">Notification Channels</p>
+          <p class="text-sm text-slate-500">
+            ServiceNow, Email, and SMS ensure alerts are seen.
+          </p>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12">
+        <div class="bg-white p-6 rounded-lg shadow-md">
+          <h3 class="text-xl font-bold text-center text-[#005F73] mb-4">
+            Incident Creation Source
+          </h3>
+          <p class="text-center text-sm text-slate-500 mb-4">
+            This chart shows which system is responsible for automatically
+            creating incident tickets in ServiceNow.
+          </p>
+          <div class="chart-container">
+            <canvas id="incidentSourceChart"></canvas>
+          </div>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow-md">
+          <h3 class="text-xl font-bold text-center text-[#005F73] mb-4">
+            Alert Notification Methods
+          </h3>
+          <p class="text-center text-sm text-slate-500 mb-4">
+            This chart illustrates the primary notification methods used across
+            both MNA and Redgate systems.
+          </p>
+          <div class="chart-container">
+            <canvas id="notificationMethodChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="comparison" class="mb-16 scroll-mt-24">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl md:text-4xl font-bold text-[#005F73]">
+          System Comparison
+        </h2>
+        <p class="mt-2 text-lg text-slate-600">
+          An interactive side-by-side look at our two primary alerting systems.
+        </p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="bg-white p-6 rounded-lg shadow-lg border-t-4 border-[#0A9396]">
+          <h3 class="text-2xl font-bold text-center text-[#0A9396]">MNA</h3>
+          <p class="text-center text-slate-500 mb-6">Foundational & Automated</p>
+          <div class="space-y-4">
+            <div>
+              <h4 class="font-bold">Monitoring Scope:</h4>
+              <p class="text-slate-600 text-sm">
+                Core health & availability. Covers all SQL servers for disk
+                space, backups, job failures, and instance availability.
+              </p>
+            </div>
+            <div>
+              <h4 class="font-bold">Severity Levels:</h4>
+              <p class="text-slate-600 text-sm">Warning & Critical.</p>
+            </div>
+            <div>
+              <h4 class="font-bold">Alert Mechanism:</h4>
+              <p class="text-slate-600 text-sm">
+                Fully automated. Creates P3/P4 ServiceNow incidents, sends
+                emails, and dispatches SMS alerts.
+              </p>
+            </div>
+            <div>
+              <h4 class="font-bold">Target Audience:</h4>
+              <p class="text-slate-600 text-sm">
+                DBA Team, On-call Engineer, Manager.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow-lg border-t-4 border-[#CA6702]">
+          <h3 class="text-2xl font-bold text-center text-[#CA6702]">Redgate</h3>
+          <p class="text-center text-slate-500 mb-6">Performance & Manual</p>
+          <div class="space-y-4">
+            <div>
+              <h4 class="font-bold">Monitoring Scope:</h4>
+              <p class="text-slate-600 text-sm">
+                Specialized performance metrics. Used on licensed servers for CPU,
+                memory, long-running queries, deadlocks, and AG health.
+              </p>
+            </div>
+            <div>
+              <h4 class="font-bold">Severity Levels:</h4>
+              <p class="text-slate-600 text-sm">Low, Medium, High.</p>
+            </div>
+            <div>
+              <h4 class="font-bold">Alert Mechanism:</h4>
+              <p class="text-slate-600 text-sm">
+                Email notification only. Requires manual assessment by a DBA to
+                create an incident ticket.
+              </p>
+            </div>
+            <div>
+              <h4 class="font-bold">Target Audience:</h4>
+              <p class="text-slate-600 text-sm">DBA Team, Application Teams.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="lifecycle" class="mb-16 scroll-mt-24">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl md:text-4xl font-bold text-[#005F73]">Alert Lifecycle</h2>
+        <p class="mt-2 text-lg text-slate-600">
+          Follow an alert from trigger to resolution. Use the toggle to switch
+          between workflows.
+        </p>
+      </div>
+      <div class="flex justify-center mb-8">
+        <div class="bg-slate-200 rounded-full p-1 flex">
+          <button
+            id="mna-toggle"
+            class="px-4 py-2 text-sm font-semibold rounded-full bg-[#0A9396] text-white"
+          >
+            MNA Workflow
+          </button>
+          <button
+            id="redgate-toggle"
+            class="px-4 py-2 text-sm font-semibold rounded-full text-slate-600"
+          >
+            Redgate Workflow
+          </button>
+        </div>
+      </div>
+      <div id="flowchart-container" class="bg-white p-6 md:p-10 rounded-lg shadow-lg"></div>
+    </section>
+
+    <section id="directory" class="scroll-mt-24">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl md:text-4xl font-bold text-[#005F73]">Alert Directory</h2>
+        <p class="mt-2 text-lg text-slate-600">
+          A searchable and filterable list of all configured alerts.
+        </p>
+      </div>
+      <div class="bg-white p-4 rounded-lg shadow-md mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <input
+            type="text"
+            id="search-box"
+            placeholder="Search alerts by name..."
+            class="w-full p-2 border border-slate-300 rounded-md md:col-span-2"
+          />
+          <select
+            id="filter-box"
+            class="w-full p-2 border border-slate-300 rounded-md"
+          >
+            <option value="all">All Systems</option>
+            <option value="MNA">MNA</option>
+            <option value="Redgate">Redgate</option>
+          </select>
+        </div>
+      </div>
+      <div
+        id="alert-list"
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+      ></div>
+    </section>
+  </main>
+
+  <script>
+    const alertData = [
+      {
+        name: "Disk Space Monitoring",
+        system: "MNA",
+        category: "Capacity",
+        details: "Warning: 80%, Critical: 90%. Creates P3 incident.",
+      },
+      {
+        name: "Job Failure (Index)",
+        system: "MNA",
+        category: "Jobs",
+        details: "Alerts on failure. Creates P4 incident.",
+      },
+      {
+        name: "Job Failure (Integrity)",
+        system: "MNA",
+        category: "Jobs",
+        details: "Alerts on failure. Creates P4 incident.",
+      },
+      {
+        name: "Full Backup Threshold",
+        system: "MNA",
+        category: "Backup",
+        details: "Backup missing > 7 days. Creates P3 incident.",
+      },
+      {
+        name: "Log Backup Threshold",
+        system: "MNA",
+        category: "Backup",
+        details: "Log backup missing > 4 hours. Creates P3 incident.",
+      },
+      {
+        name: "Forked Recovery Path",
+        system: "MNA",
+        category: "Backup",
+        details: "No valid full backup in history. Creates P3 incident.",
+      },
+      {
+        name: "SQL Instance Availability",
+        system: "MNA",
+        category: "Availability",
+        details: "Instance unreachable. Creates P3 incident.",
+      },
+      {
+        name: "Monitoring Error",
+        system: "Redgate",
+        category: "General",
+        details: "Redgate unable to collect data for 30 secs. Email only.",
+      },
+      {
+        name: "Host Unreachable",
+        system: "Redgate",
+        category: "General",
+        details: "Windows machine unavailable for 30 secs. Email only.",
+      },
+      {
+        name: "Instance Unreachable",
+        system: "Redgate",
+        category: "Availability",
+        details: "Low: 1s, Med: 15s, High: 30s. Email only.",
+      },
+      {
+        name: "CPU Utilization",
+        system: "Redgate",
+        category: "Performance",
+        details: "Low: 85%, Med: 90%, High: 95%. Email only.",
+      },
+      {
+        name: "Long Running Query",
+        system: "Redgate",
+        category: "Performance",
+        details: "Low: 10m, Med: 20m, High: 50m. Email only.",
+      },
+      {
+        name: "Blocking",
+        system: "Redgate",
+        category: "Performance",
+        details: "Low: 1m, Med: 2m, High: 5m. Email only.",
+      },
+      {
+        name: "Deadlock",
+        system: "Redgate",
+        category: "Performance",
+        details: "Based on number of victims. Email only.",
+      },
+      {
+        name: "Database Unavailable",
+        system: "Redgate",
+        category: "Availability",
+        details: "Low: 1s, Med: 15s, High: 3m. Email only.",
+      },
+      {
+        name: "Backup Overdue",
+        system: "Redgate",
+        category: "Backup",
+        details: "Low: 3d, Med: 7d, High: 21d. Email only.",
+      },
+      {
+        name: "Log Backup Overdue",
+        system: "Redgate",
+        category: "Backup",
+        details: "Low: 1d, Med: 7d, High: 10d. Email only.",
+      },
+      {
+        name: "Fragmented Indexes",
+        system: "Redgate",
+        category: "Performance",
+        details: "Low: 15%, Med: 60%, High: 70%. Email only.",
+      },
+      {
+        name: "Low Space in TempDB",
+        system: "Redgate",
+        category: "Capacity",
+        details: "Med: 20%, High: 10% for 600s. Email only.",
+      },
+      {
+        name: "Job Failure",
+        system: "Redgate",
+        category: "Jobs",
+        details: "Alerts on any failure. Email only.",
+      },
+      {
+        name: "DB Not Healthy (AG)",
+        system: "Redgate",
+        category: "Availability",
+        details: "Replica not syncing/connected. Email only.",
+      },
+      {
+        name: "Failover (AG)",
+        system: "Redgate",
+        category: "Availability",
+        details: "Medium alert on AG failover. Email only.",
+      },
+    ];
+
+    const mnaFlowchart = `
+      <div class="space-y-0">
+        <div class="flowchart-step border-[#0A9396] text-[#0A9396]">
+          <div class="flowchart-step-content ml-4 pb-8">
+            <h4 class="font-bold text-[#005F73]">1. Event Trigger</h4>
+            <p class="text-sm text-slate-600">
+              A database metric (e.g., Disk Space &gt; 90%) breaches a
+              predefined threshold in MNA.
+            </p>
+          </div>
+          <div class="flowchart-connector absolute bg-[#0A9396]"></div>
+        </div>
+        <div class="flowchart-step border-[#0A9396] text-[#0A9396]">
+          <div class="flowchart-step-content ml-4 pb-8">
+            <h4 class="font-bold text-[#005F73]">2. Automated Alert Generation</h4>
+            <p class="text-sm text-slate-600">
+              MNA automatically generates a 'Warning' or 'Critical' alert.
+            </p>
+          </div>
+          <div class="flowchart-connector absolute bg-[#0A9396]"></div>
+        </div>
+        <div class="flowchart-step border-[#0A9396] text-[#0A9396]">
+          <div class="flowchart-step-content ml-4 pb-8">
+            <h4 class="font-bold text-[#005F73]">3. Multi-Channel Notification</h4>
+            <p class="text-sm text-slate-600">Simultaneously:</p>
+            <ul class="list-disc list-inside text-sm text-slate-500 mt-1">
+              <li>A P3/P4 incident is created in ServiceNow.</li>
+              <li>An email is sent to the DBA Team.</li>
+              <li>An SMS is sent to the On-call Engineer &amp; Manager.</li>
+            </ul>
+          </div>
+          <div class="flowchart-connector absolute bg-[#0A9396]"></div>
+        </div>
+        <div class="flowchart-step border-transparent text-[#0A9396]">
+          <div class="flowchart-step-content ml-4 pb-0">
+            <h4 class="font-bold text-[#005F73]">4. Resolution</h4>
+            <p class="text-sm text-slate-600">
+              The on-call DBA acknowledges the ticket, resolves the underlying
+              issue, and closes the ServiceNow ticket.
+            </p>
+          </div>
+        </div>
+      </div>`;
+
+    const redgateFlowchart = `
+      <div class="space-y-0">
+        <div class="flowchart-step border-[#CA6702] text-[#CA6702]">
+          <div class="flowchart-step-content ml-4 pb-8">
+            <h4 class="font-bold text-[#005F73]">1. Event Trigger</h4>
+            <p class="text-sm text-slate-600">
+              A performance metric (e.g., CPU &gt; 95%) breaches a threshold in
+              Redgate.
+            </p>
+          </div>
+          <div class="flowchart-connector absolute bg-[#CA6702]"></div>
+        </div>
+        <div class="flowchart-step border-[#CA6702] text-[#CA6702]">
+          <div class="flowchart-step-content ml-4 pb-8">
+            <h4 class="font-bold text-[#005F73]">2. Email Notification</h4>
+            <p class="text-sm text-slate-600">
+              Redgate sends an email alert (Low, Medium, or High) to the DBA and/or
+              Application Team.
+            </p>
+          </div>
+          <div class="flowchart-connector absolute bg-[#CA6702]"></div>
+        </div>
+        <div class="flowchart-step border-[#CA6702] text-[#CA6702]">
+          <div class="flowchart-step-content ml-4 pb-8">
+            <h4 class="font-bold text-[#005F73]">3. Manual Assessment</h4>
+            <p class="text-sm text-slate-600">
+              A DBA receives the email and manually assesses the alert's impact and
+              validity.
+            </p>
+          </div>
+          <div class="flowchart-connector absolute bg-[#CA6702]"></div>
+        </div>
+        <div class="flowchart-step border-transparent text-[#CA6702]">
+          <div class="flowchart-step-content ml-4 pb-0">
+            <h4 class="font-bold text-[#005F73]">4. Resolution</h4>
+            <p class="text-sm text-slate-600">
+              The DBA resolves the issue and may optionally create a ServiceNow
+              ticket if required. Acknowledgment is done by replying to the email.
+            </p>
+          </div>
+        </div>
+      </div>`;
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const flowchartContainer = document.getElementById("flowchart-container");
+      const mnaToggle = document.getElementById("mna-toggle");
+      const redgateToggle = document.getElementById("redgate-toggle");
+      const alertList = document.getElementById("alert-list");
+      const searchBox = document.getElementById("search-box");
+      const filterBox = document.getElementById("filter-box");
+
+      const renderAlerts = () => {
+        const searchTerm = searchBox.value.toLowerCase();
+        const filterTerm = filterBox.value;
+        alertList.innerHTML = "";
+        alertData
+          .filter((alert) => filterTerm === "all" || alert.system === filterTerm)
+          .filter((alert) => alert.name.toLowerCase().includes(searchTerm))
+          .forEach((alert) => {
+            const alertCard = `
+              <div class="bg-white p-4 rounded-lg shadow-md border-l-4 ${
+                alert.system === "MNA"
+                  ? "border-[#0A9396]"
+                  : "border-[#CA6702]"
+              }">
+                <div class="flex justify-between items-start">
+                  <h4 class="font-bold text-md text-slate-800">${alert.name}</h4>
+                  <span class="text-xs font-semibold ${
+                    alert.system === "MNA"
+                      ? "bg-[#0A9396]/20 text-[#005F73]"
+                      : "bg-[#CA6702]/20 text-[#CA6702]"
+                  } px-2 py-1 rounded-full">${alert.system}</span>
+                </div>
+                <p class="text-sm text-slate-600 mt-2">${alert.details}</p>
+                <p class="text-xs text-slate-400 mt-3">Category: ${alert.category}</p>
+              </div>
+            `;
+            alertList.insertAdjacentHTML("beforeend", alertCard);
+          });
+      };
+
+      flowchartContainer.innerHTML = mnaFlowchart;
+      renderAlerts();
+
+      mnaToggle.addEventListener("click", () => {
+        flowchartContainer.innerHTML = mnaFlowchart;
+        mnaToggle.classList.add("bg-[#0A9396]", "text-white");
+        redgateToggle.classList.remove("bg-[#CA6702]", "text-white");
+        redgateToggle.classList.add("text-slate-600");
+      });
+
+      redgateToggle.addEventListener("click", () => {
+        flowchartContainer.innerHTML = redgateFlowchart;
+        redgateToggle.classList.add("bg-[#CA6702]", "text-white");
+        mnaToggle.classList.remove("bg-[#0A9396]", "text-white");
+        mnaToggle.classList.add("text-slate-600");
+      });
+
+      searchBox.addEventListener("input", renderAlerts);
+      filterBox.addEventListener("change", renderAlerts);
+
+      const tooltipCallback = {
+        plugins: {
+          tooltip: {
+            callbacks: {
+              title: function (tooltipItems) {
+                const item = tooltipItems[0];
+                let label = item.chart.data.labels[item.dataIndex];
+                if (Array.isArray(label)) {
+                  return label.join(" ");
+                } else {
+                  return label;
+                }
+              },
+            },
+          },
+        },
+      };
+
+      const incidentCtx = document
+        .getElementById("incidentSourceChart")
+        .getContext("2d");
+      new Chart(incidentCtx, {
+        type: "doughnut",
+        data: {
+          labels: ["MNA (Automated)", "Redgate (Manual)"],
+          datasets: [
+            {
+              label: "Incident Source",
+              data: [100, 0],
+              backgroundColor: ["#0A9396", "#E9D8A6"],
+              borderColor: ["#FFFFFF"],
+              borderWidth: 2,
+            },
+          ],
+        },
+        options: { ...tooltipCallback, responsive: true, maintainAspectRatio: false },
+      });
+
+      const notificationCtx = document
+        .getElementById("notificationMethodChart")
+        .getContext("2d");
+      new Chart(notificationCtx, {
+        type: "pie",
+        data: {
+          labels: ["ServiceNow Tickets", "Email", "SMS"],
+          datasets: [
+            {
+              label: "Notification Method",
+              data: [33.3, 33.3, 33.3],
+              backgroundColor: ["#005F73", "#94D2BD", "#EE9B00"],
+              borderColor: ["#FFFFFF"],
+              borderWidth: 2,
+            },
+          ],
+        },
+        options: { ...tooltipCallback, responsive: true, maintainAspectRatio: false },
+      });
+
+      const mobileNav = document.getElementById("mobile-nav");
+      mobileNav.addEventListener("change", (e) => {
+        window.location.href = e.target.value;
+      });
+
+      const navLinks = document.querySelectorAll(".nav-link");
+      const sections = document.querySelectorAll("main section");
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              navLinks.forEach((link) => {
+                link.classList.remove("active", "text-[#005F73]", "border-[#005F73]");
+                link.classList.add("text-slate-600", "border-transparent");
+                if (link.getAttribute("href").substring(1) === entry.target.id) {
+                  link.classList.add("active", "text-[#005F73]", "border-[#005F73]");
+                }
+              });
+            }
+          });
+        },
+        { rootMargin: "-50% 0px -50% 0px" }
+      );
+
+      sections.forEach((section) => observer.observe(section));
+    });
+  </script>
+</body>
+</html>
