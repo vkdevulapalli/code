@@ -1,2 +1,78 @@
 Zabbix Monitoring
 Zabbix monitoring is utilized by select applications to oversee both application and database servers. Unlike Redgate, Zabbix does not require licensing fees, making it a cost-effective option for targeted monitoring needs.
+## Updated Webpage Section: Integrating Zabbix Monitoring
+
+Below is the modified section to seamlessly integrate Zabbix into your web dashboard.  
+**Instructions:** You can add this as a new section titled "Zabbix Monitoring (E&I Applications)" after "Monitoring System Overview" or "System Comparison."  
+The code and content are provided for inclusion in your HTML; supporting commentary is for clarity.
+
+### 1. New Section for Zabbix
+
+#### Placement Recommendation:
+- **Best Placement:** After "Monitoring System Overview" and before "System Comparison"
+- **Alternate:** Add as a third card in "System Comparison," or as a separate call-out panel.
+
+#### Example HTML Content
+
+```html
+
+  
+    Zabbix Monitoring (E&amp;I Applications)
+    
+      Overview of how engineering and infrastructure (E&amp;I) teams leverage Zabbix for database monitoring in application environments.
+    
+  
+  
+    
+      80+
+      Applications Rely on Zabbix
+      Zabbix actively monitors the database hosts for over 80 engineering and infrastructure applications, providing real-time alerting on performance, health, and resource usage.
+    
+    
+      Key Zabbix Features for Database Monitoring:
+      
+        Agentless and agent-based monitoring of database host metrics
+        Custom triggers for CPU, RAM, disk, and database service health
+        Centralized alerting dashboard and historical trend analysis
+        Integration capabilities with E&I application alert workflows
+        Email and other notification channel support
+      
+    
+  
+
+```
+
+### 2. Dashboard Narrative Update
+
+Add this sentence to your "Monitoring System Overview" or "System Comparison" sections:
+
+> *Zabbix is utilized by E&I to monitor the database hosts of over 80 applications, ensuring proactive issue detection and robust infrastructure oversight alongside MNA and Redgate.*
+
+### 3. (Optional) Zabbix in Comparison Table
+
+If you'd like Zabbix to appear in the side-by-side "System Comparison," add as a third column:
+
+| Feature                     | MNA               | Redgate           | Zabbix (E&I)                         |
+|-----------------------------|-------------------|-------------------|--------------------------------------|
+| Scope                       | Core health & availability | Performance metrics | Host-level metrics for 80+ applications |
+| Alert Mechanism             | Automated incidents, multi-channel | Email only          | Centralized dashboard, email/other   |
+| Severity/Triggers           | Warning, Critical | Low, Medium, High | Custom thresholds, dynamic triggers  |
+| Users/Targets               | DBAs, Engineers   | DBAs, App teams   | E&I Application teams                |
+| Integration                 | ServiceNow, SMS   | Manual ticket     | E&I workflow, email, dashboard       |
+
+
+### 4. Navigation Update
+
+Add a navigation link:
+
+```html
+Zabbix
+```
+
+### 5. Bullet Point for Home Section
+
+In your summary cards/grid at the top, consider:
+
+- **3 Monitoring Platforms:** MNA, Redgate, and Zabbix support complete DB infrastructure monitoring.
+
+Using these additions, your interactive SPA dashboard will fully and accurately represent the Zabbix monitoring landscape for E&I applications. If you want the exact file version or further customization, let me know!
