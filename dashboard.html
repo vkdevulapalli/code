@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en"></html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure File Sharing - Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            margin: 0;
+        }
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding-top: 80px;
+            padding-bottom: 60px;
+        }
+        .logo-container {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
+        .footer {
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            padding: 10px 30px;
+            font-size: 0.9em;
+            background: rgba(255,255,255,0.8);
+            border-radius: 10px 0 0 0;
+            box-shadow: 0 -2px 8px rgba(0,0,0,0.05);
+        }
+        .container-modern {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+            padding: 32px;
+            margin: 24px 0;
+            width: 100%;
+            max-width: 480px;
+        }
+        .file-list {
+            list-style: none;
+            padding-left: 0;
+        }
+        .file-list li {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 8px 12px;
+            transition: background 0.2s;
+        }
+        .file-list li:hover {
+            background: #e9ecef;
+        }
+        .btn-modern {
+            border-radius: 8px;
+            font-weight: 600;
+            transition: box-shadow 0.2s;
+        }
+        .btn-modern.encrypted {
+            background: #4caf50;
+            color: #fff;
+        }
+        .btn-modern.logout {
+            background: #dc3545;
+            color: #fff;
+        }
+        .progress {
+            height: 22px;
+            border-radius: 8px;
+            background: #e9ecef;
+        }
+        .progress-bar {
+            border-radius: 8px;
+        }
+        .logout-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+        .audit-btn-container {
+            position: absolute;
+            top: 20px;
+            right: 120px;
+        }
+        @media (max-width: 600px) {
+            .container-modern {
+                padding: 16px;
+                max-width: 98vw;
+            }
+            .main-content {
+                padding-top: 100px;
+            }
+            .logo-container {
+                top: 10px;
+                left: 10px;
+            }
+            .logout-container, .audit-btn-container {
+                top: 10px;
+                right: 10px;
+            }
+        }
+        .icon-lock::before { content: "\1F512"; margin-right: 6px; color: #198754; }
+        .icon-download::before { content: "\2B07"; margin-right: 6px; color: #fff; }
+        .icon-cloud::before { content: "\2601"; margin-right: 6px; color: #0d6efd; }
+        .icon-upload::before { content: "\2B06"; margin-right: 6px; color: #fff; }
+        .icon-signout::before { content: "\1F6AA"; margin-right: 6px; color: #fff; }
+        .icon-filealt::before { content: "\1F4C4"; margin-right: 6px; color: #fff; }
+        .icon-cloudupload::before { content: "\2B06"; margin-right: 6px; color: #fff; }
+        /* Accessibility improvements */
+        .btn:focus, input:focus {
+            outline: 2px solid #0d6efd;
+            outline-offset: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="logo-container">
+        <img src="{{ url_for('static', filename='optum_logo.png') }}" alt="Optum Logo" height="50">
+    </div>
+    <div class="logout-container">
+        <a href="/logout" class="btn btn-modern logout" aria-label="Logout"><span class="icon-signout"></span> Logout</a>
+    </div>
+    <div class="audit-btn-container">
+        <button class="btn btn-modern btn-primary" onclick="redirectToAudit()" aria-label="Reports"><span class="icon-filealt"></span> Reports</button>
+    </div>
+    <main class="main-content">
+        <h1 class="mb-4 fw-bold text-primary" style="text-decoration: underline;">Dashboard</h1>
+        <div class="container-modern shadow-sm">
+            <form id="upload-form" action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data">
+                <h3 class="mb-3 text-secondary" style="text-decoration: underline;">Local Storage : Upload files</h3>
+                <div class="mb-3">
+                    <input type="file" name="files[]" multiple required class="form-control" aria-label="Select files to upload">
+                </div>
+                <button type="submit" class="btn btn-modern btn-success w-100"><span class="icon-upload"></span> Upload</button>
+            </form>
+            <div id="upload-progress" style="display:none; margin-top:16px;">
+                <div class="progress mb-2">
+                    <div id="progress-bar" class="progress-bar bg-success" style="width:0%"></div>
+                </div>
+                <span id="progress-text" class="text-muted">Encrypting and Uploading... 0%</span>
+            </div>
+            <h4 class="mt-4 mb-2 text-secondary">Files in Local Storage : Encrypted</h4>
+            <ul class="file-list" id="local-file-list">
+                {% for file in files %}
+                    <li>
+                        <span><span class="icon-lock"></span> {{ file }}</span>
+                        <a href="{{ url_for('download_encrypted_file', filename=file) }}" class="btn btn-modern btn-sm encrypted" aria-label="Download {{ file }}"><span class="icon-download"></span> Download Encrypted</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="container-modern shadow-sm">
+            <form id="cloud-upload-form" action="{{ url_for('upload_to_cloud') }}" method="post" enctype="multipart/form-data">
+                <h3 class="mb-3 text-secondary" style="text-decoration: underline;">Cloud Storage : Upload files</h3>
+                <div class="mb-3">
+                    <input type="file" name="files[]" multiple required class="form-control" aria-label="Select files to upload to cloud">
+                </div>
+                <button type="submit" class="btn btn-modern btn-primary w-100"><span class="icon-cloudupload"></span> Upload</button>
+            </form>
+            <div id="cloud-upload-progress" style="display:none; margin-top:16px;">
+                <div class="progress mb-2">
+                    <div id="cloud-progress-bar" class="progress-bar bg-primary" style="width:0%"></div>
+                </div>
+                <span id="cloud-progress-text" class="text-muted">Encrypting and Uploading... 0%</span>
+            </div>
+            <h4 class="mt-4 mb-2 text-secondary">Files in Cloud Storage : Encrypted</h4>
+            <ul class="file-list">
+                {% for file in cloud_files %}
+                    <li>
+                        <span><span class="icon-cloud"></span> {{ file }}</span>
+                        <a href="{{ url_for('download_encrypted_from_cloud', filename=file) }}" class="btn btn-modern btn-sm encrypted" aria-label="Download {{ file }}"><span class="icon-download"></span> Download Encrypted</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </main>
+    <footer class="footer" style="position: fixed; bottom: 16px; right: 24px; left: auto; width: auto; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); padding: 10px 18px;">
+        <p style="margin: 0;">© 2025 Optum, Inc. All rights reserved.</p>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Improved upload animation with instant feedback and cancel option
+        function animateProgress(barId, textId, duration, callback) {
+            var progressBar = document.getElementById(barId);
+            var progressText = document.getElementById(textId);
+            let percent = 0;
+            let interval = setInterval(function() {
+                percent += 1;
+                progressBar.style.width = percent + '%';
+                progressText.textContent = 'Encrypting and Uploading... ' + percent + '%';
+                if (percent >= 100) {
+                    clearInterval(interval);
+                    progressText.textContent = 'File upload completed!';
+                    if (callback) callback();
+                }
+            }, duration / 100);
+        }
+        document.getElementById('upload-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            this.style.display = 'none';
+            document.getElementById('upload-progress').style.display = 'block';
+            animateProgress('progress-bar', 'progress-text', 2000, () => this.submit());
+        });
+        document.getElementById('cloud-upload-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            this.style.display = 'none';
+            document.getElementById('cloud-upload-progress').style.display = 'block';
+            animateProgress('cloud-progress-bar', 'cloud-progress-text', 2000, () => this.submit());
+        });
+        function redirectToAudit() {
+            window.location.href = "{{ url_for('upload_reports') }}";
+        }
+    </script>
+</body>
+</html>

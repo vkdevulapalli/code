@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>File Uploads - Optum Secure Bucket</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Using inbuilt system fonts, no external font link needed -->
+    <style>
+        :root {
+            --primary: #f58220;
+            --secondary: #2d3e50;
+            --bg: #f8f9fa;
+            --card-bg: #fff;
+            --accent: #e9ecef;
+            --hover: #f1f3f5;
+            --shadow: 0 4px 24px rgba(0,0,0,0.08);
+        }
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', Arial, sans-serif;
+            background: var(--bg);
+            color: var(--secondary);
+        }
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 1100px;
+            margin: 40px auto 0 auto;
+            background: var(--card-bg);
+            border-radius: 18px;
+            box-shadow: var(--shadow);
+            padding: 36px 32px 32px 32px;
+        }
+        .logo-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        .logo-text {
+            font-weight: 700;
+            font-size: 2.8em;
+            color: var(--primary);
+            letter-spacing: 2px;
+        }
+        .dropdown-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .dropdown-label {
+            font-weight: 600;
+            font-size: 1.1em;
+            color: var(--secondary);
+        }
+        select {
+            padding: 8px 16px;
+            font-size: 1em;
+            border-radius: 8px;
+            border: 1px solid var(--accent);
+            background: var(--bg);
+            transition: border-color 0.2s;
+        }
+        select:focus {
+            border-color: var(--primary);
+            outline: none;
+        }
+        h2 {
+            font-size: 2em;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--secondary);
+            letter-spacing: 1px;
+        }
+        .bucket-info {
+            font-size: 1.1em;
+            margin-bottom: 18px;
+            color: #555;
+            background: var(--accent);
+            padding: 10px 18px;
+            border-radius: 8px;
+            display: inline-block;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+        th, td {
+            padding: 16px 12px;
+            text-align: left;
+        }
+        th {
+            background: var(--accent);
+            font-weight: 700;
+            font-size: 1.05em;
+            color: var(--secondary);
+            border-bottom: 2px solid var(--primary);
+        }
+        td {
+            font-size: 1em;
+            color: #444;
+            border-bottom: 1px solid var(--accent);
+        }
+        tr:last-child td {
+            border-bottom: none;
+        }
+        tr:hover {
+            background: var(--hover);
+            transition: background 0.2s;
+        }
+        @media (max-width: 800px) {
+            .container {
+                padding: 18px 8px;
+            }
+            table, th, td {
+                font-size: 0.95em;
+            }
+            .logo-text {
+                font-size: 2em;
+            }
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 8px 2px;
+            }
+            .dropdown-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+            table, th, td {
+                font-size: 0.9em;
+                padding: 10px 6px;
+            }
+        }
+        /* Subtle animation for table rows */
+        tbody tr {
+            opacity: 0;
+            transform: translateY(10px);
+            animation: fadeInRow 0.5s forwards;
+        }
+        @keyframes fadeInRow {
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo-container">
+            <img src="/static/optum_logo.png" alt="Optum Logo" style="height:48px; margin-right:16px;">
+            <!-- <span class="logo-text">Optum</span> -->
+        </div>
+        <div class="dropdown-row">
+            <label class="dropdown-label" for="bucket-select">Select Bucket Name:</label>
+            <select id="bucket-select" name="bucket">
+                <option value="" selected>Select</option>
+                <option value="Optum-secure-bucket-db-oracle">Optum-secure-bucket-db-oracle</option>
+                <option value="Optum-secure-bucket-db-mssql">Optum-secure-bucket-db-mssql</option>
+            </select>
+        </div>
+        <h2>File Uploads to Cloud Storage</h2>
+        <div class="bucket-info">
+            <strong>Bucket Name:</strong>
+        </div>
+        <div style="overflow-x:auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>File Name</th>
+                        <th>Uploaded By</th>
+                        <th>Timestamp</th>
+                        <th>File Size</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="file-table-body">
+                    <!-- No rows initially; table will populate after selection -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+<script>
+            const oracleRows = `
+            <tr>
+                <td>report1_schema.dmp</td>
+                <td>alice</td>
+                <td>2024-06-01 10:15</td>
+                <td>2.3 MB</td>
+                <td>Uploaded</td>
+            </tr>
+            <tr>
+                <td>data_export.dmp</td>
+                <td>vijay_d</td>
+                <td>2024-06-02 09:45</td>
+                <td>1.1 MB</td>
+                <td>Uploaded</td>
+            </tr>
+            <tr>
+                <td>backup_20240601.rman</td>
+                <td>alice</td>
+                <td>2024-06-01 11:00</td>
+                <td>5.2 MB</td>
+                <td>Uploaded</td>
+            </tr>
+            <tr>
+                <td>full_db_20240602.dmp</td>
+                <td>vijay_d</td>
+                <td>2024-06-02 12:30</td>
+                <td>8.7 MB</td>
+                <td>Uploaded</td>
+            </tr>
+            <tr>
+                <td>archive_20240603.rman</td>
+                <td>carol</td>
+                <td>2024-06-03 09:10</td>
+                <td>6.1 MB</td>
+                <td>Uploaded</td>
+            </tr>
+            <tr>
+                <td>test_db_20240604.dmp</td>
+                <td>dave</td>
+                <td>2024-06-04 15:20</td>
+                <td>7.3 MB</td>
+                <td>Uploaded</td>
+            </tr>
+            <tr>
+                <td>prod_backup_20240605.rman</td>
+                <td>eve</td>
+                <td>2024-06-05 08:45</td>
+                <td>9.0 MB</td>
+                <td>Uploaded</td>
+            </tr>
+            <tr>
+                <td>user_data_20240606.dmp</td>
+                <td>frank</td>
+                <td>2024-06-06 13:05</td>
+                <td>4.8 MB</td>
+                <td>Uploaded</td>
+            </tr>
+            <tr>
+                <td>audit_20240607.rman</td>
+                <td>grace</td>
+                <td>2024-06-07 16:30</td>
+                <td>3.2 MB</td>
+                <td>Uploaded</td>
+            </tr>
+            <tr>
+                <td>finance_20240608.dmp</td>
+                <td>heidi</td>
+                <td>2024-06-08 10:50</td>
+                <td>5.5 MB</td>
+                <td>Uploaded</td>
+            </tr>
+            <tr>
+                <td>hr_backup_20240609.rman</td>
+                <td>ivan</td>
+                <td>2024-06-09 14:15</td>
+                <td>6.7 MB</td>
+                <td>Uploaded</td>
+            </tr>
+            <tr>
+                <td>sales_20240610.dmp</td>
+                <td>judy</td>
+                <td>2024-06-10 09:40</td>
+                <td>7.9 MB</td>
+                <td>Uploaded</td>
+            </tr>
+            <tr>
+                <td>monthly_20240611.rman</td>
+                <td>alice</td>
+                <td>2024-06-11 12:55</td>
+                <td>8.1 MB</td>
+                <td>Uploaded</td>
+            </tr>
+            <tr>
+                <td>quarterly_20240612.dmp</td>
+                <td>vijay_d</td>
+                <td>2024-06-12 17:20</td>
+                <td>9.3 MB</td>
+                <td>Uploaded</td>
+            </tr>
+            <tr>
+                <td>test_env_20240613.rman</td>
+                <td>carol</td>
+                <td>2024-06-13 11:10</td>
+                <td>2.6 MB</td>
+                <td>Uploaded</td>
+            </tr>
+            <tr>
+                <td>prod_env_20240614.dmp</td>
+                <td>dave</td>
+                <td>2024-06-14 15:45</td>
+                <td>6.4 MB</td>
+                <td>Uploaded</td>
+            </tr>
+            <tr>
+                <td>archive_20240615.rman</td>
+                <td>eve</td>
+                <td>2024-06-15 08:20</td>
+                <td>7.2 MB</td>
+                <td>Uploaded</td>
+            </tr>
+            <tr>
+                <td>user_export_20240616.dmp</td>
+                <td>frank</td>
+                <td>2024-06-16 13:35</td>
+                <td>5.6 MB</td>
+                <td>Uploaded</td>
+            </tr>
+            <tr>
+                <td>audit_log_20240617.rman</td>
+                <td>grace</td>
+                <td>2024-06-17 16:00</td>
+                <td>4.3 MB</td>
+                <td>Uploaded</td>
+            </tr>
+            <tr>
+                <td>finance_export_20240618.dmp</td>
+                <td>heidi</td>
+                <td>2024-06-18 10:25</td>
+                <td>6.9 MB</td>
+                <td>Uploaded</td>
+            </tr>
+            <tr>
+                <td>hr_archive_20240619.rman</td>
+                <td>ivan</td>
+                <td>2024-06-19 14:50</td>
+                <td>7.8 MB</td>
+                <td>Uploaded</td>
+            </tr>
+            <tr>
+                <td>sales_export_20240620.dmp</td>
+                <td>judy</td>
+                <td>2024-06-20 09:15</td>
+                <td>8.2 MB</td>
+                <td>Uploaded</td>
+            </tr>
+            `;
+            const mssqlRows = `
+            <tr>
+                <td>sales_data.csv</td>
+                <td>carol</td>
+                <td>2024-06-03 14:20</td>
+                <td>3.5 MB</td>
+                <td>Uploaded</td>
+            </tr>
+            <tr>
+                <td>inventory.xlsx</td>
+                <td>dave</td>
+                <td>2024-06-04 11:05</td>
+                <td>2.0 MB</td>
+                <td>Uploaded</td>
+            </tr>
+            <tr>
+                <td>full_backup_20240605.bak</td>
+                <td>eve</td>
+                <td>2024-06-05 09:30</td>
+                <td>7.8 MB</td>
+                <td>Uploaded</td>
+            </tr>
+            <tr>
+                <td>diff_backup_20240606.diff</td>
+                <td>frank</td>
+                <td>2024-06-06 13:45</td>
+                <td>4.2 MB</td>
+                <td>Uploaded</td>
+            </tr>
+            <tr>
+                <td>trans_log_20240607.trn</td>
+                <td>grace</td>
+                <td>2024-06-07 16:10</td>
+                <td>3.9 MB</td>
+                <td>Uploaded</td>
+            </tr>
+            <tr>
+                <td>weekly_backup_20240608.bak</td>
+                <td>heidi</td>
+                <td>2024-06-08 10:55</td>
+                <td>6.1 MB</td>
+                <td>Uploaded</td>
+            </tr>
+            <tr>
+                <td>monthly_diff_20240609.diff</td>
+                <td>ivan</td>
+                <td>2024-06-09 14:25</td>
+                <td>5.7 MB</td>
+                <td>Uploaded</td>
+            </tr>
+            <tr>
+                <td>finance_log_20240610.trn</td>
+                <td>judy</td>
+                <td>2024-06-10 09:50</td>
+                <td>2.8 MB</td>
+                <td>Uploaded</td>
+            </tr>
+            <tr>
+                <td>prod_backup_20240611.bak</td>
+                <td>alice</td>
+                <td>2024-06-11 12:40</td>
+                <td>8.3 MB</td>
+                <td>Uploaded</td>
+            </tr>
+            <tr>
+                <td>test_diff_20240612.diff</td>
+                <td>vijay_d</td>
+                <td>2024-06-12 17:05</td>
+                <td>3.6 MB</td>
+                <td>Uploaded</td>
+            </tr>
+            <tr>
+                <td>user_trans_20240613.trn</td>
+                <td>carol</td>
+                <td>2024-06-13 11:30</td>
+                <td>4.5 MB</td>
+                <td>Uploaded</td>
+            </tr>
+            <tr>
+                <td>archive_backup_20240614.bak</td>
+                <td>dave</td>
+                <td>2024-06-14 15:55</td>
+                <td>7.0 MB</td>
+                <td>Uploaded</td>
+            </tr>
+            `;
+            document.getElementById('bucket-select').addEventListener('change', function() {
+            const tbody = document.getElementById('file-table-body');
+            if (this.value === 'Optum-secure-bucket-db-oracle') {
+                tbody.innerHTML = oracleRows;
+                document.querySelector('.bucket-info').innerHTML = '<strong>Bucket Name:</strong> Optum-secure-bucket-db-oracle';
+            } else if (this.value === 'Optum-secure-bucket-db-mssql') {
+                tbody.innerHTML = mssqlRows;
+                document.querySelector('.bucket-info').innerHTML = '<strong>Bucket Name:</strong> Optum-secure-bucket-db-mssql';
+            } else {
+                tbody.innerHTML = '';
+                document.querySelector('.bucket-info').innerHTML = '<strong>Bucket Name:</strong>';
+            }
+            });
+        </script>
+</body>
+</html>
